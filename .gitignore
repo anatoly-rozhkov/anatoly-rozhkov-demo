@@ -1,0 +1,6 @@
+*.iml
+__pycache__
+.env
+*.xml
+/.idea
+/docker/data

@@ -1,0 +1,35 @@
+services:
+  demo_db:
+    image: postgres:13-alpine
+    container_name: demo_db
+    restart: always
+    networks:
+      - demo_network
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./docker/data/db/data:/var/lib/postgresql/data
+      - ./docker/data/db/backup:/backup
+      - ./etc/init-user.sql:/docker-entrypoint-initdb.d/init-user.sql
+    ports:
+      - "7432:5432"
+
+  line_provider_app:
+    build:
+      context: .
+      dockerfile: docker/LineProvider.dockerfile
+    image: line_provider_app
+    container_name: line_provider_app
+    env_file: .env
+    restart: always
+    volumes:
+      - ./line_provider:/app/src
+    networks:
+      - demo_network
+    ports:
+      - "8080:80"
+
+networks:
+  demo_network:
+    external: false
+    name: demo_network
