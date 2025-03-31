@@ -8,3 +8,6 @@ image-clean:
 	docker image rm line_provider_app
 inside-line:
 	docker exec -it line_provider_app /bin/sh
+format:
+	black --config black.toml .
+	isort .

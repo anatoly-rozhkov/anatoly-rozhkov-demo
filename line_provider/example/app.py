@@ -3,7 +3,7 @@ import enum
 import time
 from typing import Optional
 
-from fastapi import FastAPI, Path, HTTPException
+from fastapi import FastAPI, HTTPException, Path
 from pydantic import BaseModel
 
 
@@ -21,15 +21,15 @@ class Event(BaseModel):
 
 
 events: dict[str, Event] = {
-    '1': Event(event_id='1', coefficient=1.2, deadline=int(time.time()) + 600, state=EventState.NEW),
-    '2': Event(event_id='2', coefficient=1.15, deadline=int(time.time()) + 60, state=EventState.NEW),
-    '3': Event(event_id='3', coefficient=1.67, deadline=int(time.time()) + 90, state=EventState.NEW)
+    "1": Event(event_id="1", coefficient=1.2, deadline=int(time.time()) + 600, state=EventState.NEW),
+    "2": Event(event_id="2", coefficient=1.15, deadline=int(time.time()) + 60, state=EventState.NEW),
+    "3": Event(event_id="3", coefficient=1.67, deadline=int(time.time()) + 90, state=EventState.NEW),
 }
 
 app = FastAPI()
 
 
-@app.put('/event')
+@app.put("/event")
 async def update_event(event: Event):
     if event.event_id not in events:
         events[event.event_id] = event
@@ -41,7 +41,7 @@ async def update_event(event: Event):
     return {}
 
 
-@app.get('/event/{event_id}')
+@app.get("/event/{event_id}")
 async def get_event(event_id: str = Path(default=None)):
     if event_id in events:
         return events[event_id]
@@ -49,6 +49,6 @@ async def get_event(event_id: str = Path(default=None)):
     raise HTTPException(status_code=404, detail="Event not found")
 
 
-@app.get('/events')
+@app.get("/events")
 async def get_events():
     return list(e for e in events.values() if time.time() < e.deadline)

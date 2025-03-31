@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from routers.main_router import main_router
 from starlette.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Line Provider App")
+app = FastAPI(title="Bet Maker App")
 origins = tuple([domain for domain in settings.cors_origins.split(" ")])
 
 app.add_middleware(
