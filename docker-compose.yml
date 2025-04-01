@@ -1,19 +1,4 @@
 services:
-  demo_db:
-    image: postgres:13-alpine
-    container_name: demo_db
-    restart: always
-    networks:
-      - demo_network
-    environment:
-      - POSTGRES_HOST_AUTH_METHOD=trust
-    volumes:
-      - ./docker/data/db/data:/var/lib/postgresql/data
-      - ./docker/data/db/backup:/backup
-      - ./etc/init-user.sql:/docker-entrypoint-initdb.d/init-user.sql
-    ports:
-      - "7432:5432"
-
   line_provider_app:
     build:
       context: .
@@ -28,6 +13,24 @@ services:
       - demo_network
     ports:
       - "8080:80"
+
+  rabbitmq:
+    user: 1000:1000
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    container_name: demo_rabbitmq
+    networks:
+      - demo_network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "4672:5672"
+      - "15672:15672"
 
 networks:
   demo_network:

@@ -1,6 +1,5 @@
 import pytest
 from httpx import AsyncClient
-
 from interactors.in_memory_data_storage import DataStorage
 from main import app
 

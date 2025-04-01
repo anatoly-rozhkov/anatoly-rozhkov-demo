@@ -12,6 +12,7 @@ async def test_create_event(async_client, app_connection, in_memory_data):
     data = in_memory_data
     a = []
 
+
 # @pytest.mark.parametrize("anyio_backend", ["asyncio"])
 # async def test_simple_workflow(anyio_backend):
 #     test_id = "test_id"

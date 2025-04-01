@@ -1,6 +1,7 @@
 import time
 import uuid
 
+from adapters.publisher_pika_client import PikaPublisherClient
 from fastapi import APIRouter, FastAPI, HTTPException
 from interactors.in_memory_data_storage import DataStorage
 from pydantic import UUID4
@@ -17,7 +18,10 @@ router = APIRouter(prefix="/events")
 async def create_event(request: CreateEventSchema) -> ResponseEventSchema:
     event_id = uuid.uuid4()
     data_storage.data[event_id] = request.model_dump()
-    return ResponseEventSchema(id=event_id, **data_storage.data[event_id])
+    pika_client = PikaPublisherClient()
+    message = ResponseEventSchema(id=event_id, **data_storage.data[event_id])
+    await pika_client.publish_to_queue(message)
+    return message
 
 
 @router.get("/events/", status_code=status.HTTP_200_OK)

@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
@@ -11,15 +11,6 @@ class RabbitMQSettings(BaseModel):
     login: str
     password: str
     pika_publish_queue_name: str
-    pika_consumer_queue_name: str
-
-
-# class RedisSettings(BaseModel):
-#     db_session: int
-#     host: str
-#     port: int
-#     password: SecretStr
-#     device_command_public_keys_var: str
 
 
 class Settings(BaseSettings):
@@ -39,8 +30,7 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     base_url: str = "http://localhost:8000"
 
-    # rabbit: RabbitMQSettings
-    # redis: RedisSettings
+    rabbit: RabbitMQSettings
 
 
 settings = Settings()
