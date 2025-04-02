@@ -1,5 +1,6 @@
 import time
 import uuid
+from decimal import ROUND_UP, Decimal
 
 from adapters.publisher_pika_client import PikaPublisherClient
 from fastapi import APIRouter, FastAPI, HTTPException
@@ -17,17 +18,21 @@ router = APIRouter(prefix="/events")
 @router.post("/events/", status_code=status.HTTP_201_CREATED)
 async def create_event(request: CreateEventSchema) -> ResponseEventSchema:
     event_id = uuid.uuid4()
-    data_storage.data[event_id] = request.model_dump()
+
+    data = request.model_dump()
+    data["deadline"] = Decimal(str(time.time())).quantize(Decimal("0.01"), rounding=ROUND_UP) + data["deadline"]
+    data_storage.data[event_id] = data
+
     pika_client = PikaPublisherClient()
-    message = ResponseEventSchema(id=event_id, **data_storage.data[event_id])
-    await pika_client.publish_to_queue(message)
-    return message
+    await pika_client.publish_to_queue(dict(data_storage.data[event_id], id=event_id))
+
+    return ResponseEventSchema(id=event_id, **data_storage.data[event_id])
 
 
 @router.get("/events/", status_code=status.HTTP_200_OK)
 async def get_events() -> EventListSchema:
     return EventListSchema(
-        events={event_id: event for event_id, event in data_storage.data.items() if time.time() < event.deadline}
+        events={event_id: event for event_id, event in data_storage.data.items() if time.time() < event["deadline"]}
     )
 
 

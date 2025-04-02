@@ -13,7 +13,7 @@ class PikaPublisherClient:
     def __init__(self) -> None:
         self.publish_queue_name = settings.rabbit.pika_publish_queue_name
 
-    async def publish_to_queue(self, message: ResponseEventSchema) -> None:
+    async def publish_to_queue(self, message: dict) -> None:
         message_body = aio_pika.Message(pickle.dumps(message))
         connection: aio_pika.abc.AbstractConnection = await aio_pika.connect_robust(
             host=settings.rabbit.host,

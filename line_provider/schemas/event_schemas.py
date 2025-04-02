@@ -1,5 +1,6 @@
 import decimal
 import enum
+from decimal import Decimal
 from typing import Dict, Optional, Union
 
 from pydantic import UUID4, BaseModel, Field
@@ -13,14 +14,14 @@ class EventState(enum.Enum):
 
 
 class CreateEventSchema(BaseSchema):
-    coefficient: decimal.Decimal = Field(..., description="Coefficient")
-    deadline: int = Field(..., description="Deadline in seconds")
+    coefficient: decimal.Decimal = Field(..., description="Coefficient", ge=Decimal("1.01"))
+    deadline: decimal.Decimal = Field(..., description="Deadline in seconds", ge=Decimal("30.00"))
     state: EventState = Field(..., description="Event state")
 
 
 class UpdateEventSchema(BaseSchema):
-    coefficient: Optional[decimal.Decimal] = Field(None, description="Coefficient")
-    deadline: Optional[int] = Field(None, description="Deadline in seconds")
+    coefficient: Optional[decimal.Decimal] = Field(None, description="Coefficient", ge=Decimal("1.01"))
+    deadline: Optional[decimal.Decimal] = Field(None, description="Deadline in seconds", ge=Decimal("30.00"))
     state: Optional[EventState] = Field(None, description="Event state")
 
 
