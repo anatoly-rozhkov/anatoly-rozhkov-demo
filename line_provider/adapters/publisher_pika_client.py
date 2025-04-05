@@ -4,7 +4,6 @@ import aio_pika
 import aio_pika.abc
 from core.settings import settings
 from core.utils.loggers.logger import get_logger
-from schemas.event_schemas import ResponseEventSchema
 
 
 class PikaPublisherClient:
