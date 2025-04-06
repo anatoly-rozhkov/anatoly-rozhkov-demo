@@ -1,6 +1,6 @@
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import ROUND_UP, Decimal
 
 from adapters.publisher_pika_client import PikaPublisherClient
@@ -22,7 +22,7 @@ async def create_event(request: CreateEventSchema) -> EventResponseSchema:
 
     data = request.model_dump()
     data["deadline"] = Decimal(str(time.time())).quantize(Decimal("0.01"), rounding=ROUND_UP) + data["deadline"]
-    data["created_at"] = datetime.utcnow()
+    data["created_at"] = datetime.now(timezone.utc)
     data_storage.data[event_id] = data
 
     pika_client = PikaPublisherClient()
@@ -54,10 +54,13 @@ async def update_event(event_id: UUID4, update_data: CreateEventSchema) -> Event
         created_at = data_storage.data[event_id]["created_at"]
 
         data = update_data.model_dump()
-        data["updated_at"] = datetime.utcnow()
+        data["updated_at"] = datetime.now(timezone.utc)
         data["created_at"] = created_at
 
         data_storage.data[event_id] = data
+
+        pika_client = PikaPublisherClient()
+        await pika_client.publish_to_queue(dict(data_storage.data[event_id], id=event_id))
         try:
             return EventResponseSchema(id=event_id, **data_storage.data[event_id])
         except ValidationError:
@@ -71,8 +74,11 @@ async def partially_update_event(event_id: UUID4, update_data: UpdateEventSchema
     if event_id in data_storage.data:
         existing_data = data_storage.data[event_id]
         existing_data.update(update_data.model_dump(exclude_none=True))
-        existing_data["updated_at"] = datetime.utcnow()
+        existing_data["updated_at"] = datetime.now(timezone.utc)
         data_storage.data[event_id] = existing_data
+
+        pika_client = PikaPublisherClient()
+        await pika_client.publish_to_queue(dict(data_storage.data[event_id], id=event_id))
         try:
             return EventResponseSchema(id=event_id, **data_storage.data[event_id])
         except ValidationError:
