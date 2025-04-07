@@ -1,5 +1,6 @@
-poetry-python:
-	source $(poetry env info --path)/bin/activate
+LINE-PROVIDER=line_provider
+export PYTHONPATH := $(PWD):$(PWD)/$(LINE-PROVIDER)
+
 start:
 	docker compose up
 stop:
@@ -11,3 +12,6 @@ inside-line:
 format:
 	black --config black.toml .
 	isort .
+test:
+	export PYTHONPATH=$(PWD)/$(LINE-PROVIDER); \
+	python -m pytest $(LINE-PROVIDER)/tests/ -vv

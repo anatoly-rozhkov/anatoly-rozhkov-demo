@@ -24,9 +24,6 @@ class Settings(BaseSettings):
     environment: str = "local"
     log_level: str = "INFO"
 
-    jwt_algorithm: str
-    secret_key: str
-    thread_pool_workers: int
     cors_origins: str = ""
     base_url: str = "http://localhost:8000"
 

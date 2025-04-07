@@ -2,6 +2,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from decimal import ROUND_UP, Decimal
+from typing import Union
 
 from adapters.publisher_pika_client import PikaPublisherClient
 from fastapi import APIRouter, FastAPI, HTTPException
@@ -18,7 +19,7 @@ router = APIRouter(prefix="")
 
 @router.post("/events/", status_code=status.HTTP_201_CREATED)
 async def create_event(request: CreateEventSchema) -> EventResponseSchema:
-    event_id = uuid.uuid4()
+    event_id = str(uuid.uuid4())
 
     data = request.model_dump()
     data["deadline"] = Decimal(str(time.time())).quantize(Decimal("0.01"), rounding=ROUND_UP) + data["deadline"]
@@ -39,9 +40,9 @@ async def get_events() -> EventListSchema:
 
 
 @router.get("/events/{event_id}", status_code=status.HTTP_200_OK)
-async def get_event(event_id: UUID4) -> EventResponseSchema:
+async def get_event(event_id: Union[UUID4, str]) -> EventResponseSchema:
     try:
-        return EventResponseSchema(id=event_id, **data_storage.data[event_id])
+        return EventResponseSchema(id=event_id, **data_storage.data[str(event_id)])
     except KeyError:
         raise HTTPException(status_code=404, detail="Event not found")
     except ValidationError:
@@ -49,7 +50,8 @@ async def get_event(event_id: UUID4) -> EventResponseSchema:
 
 
 @router.put("/events/{event_id}", status_code=status.HTTP_200_OK)
-async def update_event(event_id: UUID4, update_data: CreateEventSchema) -> EventResponseSchema:
+async def update_event(event_id: Union[UUID4, str], update_data: CreateEventSchema) -> EventResponseSchema:
+    event_id = str(event_id)
     if event_id in data_storage.data:
         created_at = data_storage.data[event_id]["created_at"]
 
@@ -70,7 +72,8 @@ async def update_event(event_id: UUID4, update_data: CreateEventSchema) -> Event
 
 
 @router.patch("/events/{event_id}", status_code=status.HTTP_200_OK)
-async def partially_update_event(event_id: UUID4, update_data: UpdateEventSchema) -> EventResponseSchema:
+async def partially_update_event(event_id: Union[UUID4, str], update_data: UpdateEventSchema) -> EventResponseSchema:
+    event_id = str(event_id)
     if event_id in data_storage.data:
         existing_data = data_storage.data[event_id]
         existing_data.update(update_data.model_dump(exclude_none=True))
@@ -88,7 +91,8 @@ async def partially_update_event(event_id: UUID4, update_data: UpdateEventSchema
 
 
 @router.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_event(event_id: UUID4) -> None:
+async def delete_event(event_id: Union[UUID4, str]) -> None:
+    event_id = str(event_id)
     if event_id in data_storage.data:
         data_storage.data.pop(event_id)
     else:
